@@ -110,7 +110,7 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
 
             mControlIndex = 0;
             mControlInterface = mDevice.getInterface(0);
-            mDataInterface = mDevice.getInterface(0);
+            mDataInterface = mDevice.getInterface(1);
             if (!mConnection.claimInterface(mControlInterface, true)) {
                 throw new IOException("Could not claim shared control/data interface");
             }
@@ -119,12 +119,20 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 UsbEndpoint ep = mControlInterface.getEndpoint(i);
                 if ((ep.getDirection() == UsbConstants.USB_DIR_IN) && (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT)) {
                     mControlEndpoint = ep;
+                }
+            }
+
+            for (int i = 0; i < mDataInterface.getEndpointCount(); ++i) {
+                UsbEndpoint ep = mDataInterface.getEndpoint(i);
+                if ((ep.getDirection() == UsbConstants.USB_DIR_IN) && (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT)) {
+                    mControlEndpoint = ep;
                 } else if ((ep.getDirection() == UsbConstants.USB_DIR_IN) && (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK)) {
                     mReadEndpoint = ep;
                 } else if ((ep.getDirection() == UsbConstants.USB_DIR_OUT) && (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK)) {
                     mWriteEndpoint = ep;
                 }
             }
+
             if (mControlEndpoint == null) {
                 throw new IOException("No control endpoint");
             }
